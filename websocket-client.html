@@ -1,0 +1,133 @@
+<doctype html!>
+<html>
+  <head>
+    <title>HTML5/JS & Websockets</title>
+    <form id="form">
+    First name: <input type="text" id="firstname" name="fname"><br>
+  </form>
+  </head>
+  <script href="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+  <!-- Chargement du "framework" client socket.io -->
+  <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+ 
+  <script type="text/javascript">
+    (function(window, io) {
+
+      //Au chargement du document
+      window.addEventListener('DOMContentLoaded',function() {
+
+        var socket = io('http://127.0.0.1:8888/');
+
+        // socket : Est un objet qui représente la connexion WebSocket établie entre le client WebSocket et le serveur WebSocket.
+
+         var maVariable2 = window.document.getElementById("form");
+         var maVariable = window.document.getElementById("firstname");
+
+         maVariable2.addEventListener('submit', function(evt){
+         console.log(maVariable.value);
+         var maVariableStocke = maVariable.value;
+         socket.emit('envoiBack',maVariableStocke);
+         evt.preventDefault();
+        });
+         
+        var a=5;
+
+        
+
+
+    
+        socket.on('unAutreEvenement', function (data) {
+
+          console.log(data);
+        });
+        var monCarre;
+        var test1 = 0;
+          
+  var valeurDuTopHaut, valeurDuTopBas;
+// maDiv.style.width = '50px';
+// maDiv.style.height = '50px';
+// maDiv.style.backgroundColor = "grey";
+// maDiv.style.position = "absolute";
+
+console.log(onkeydown);
+// window.addEventListener('movecarre', function(KeyboardEvent){
+  window.onkeydown = function(event) {  
+    var maDiv = {};
+    
+    switch (event.keyCode){                      
+      
+      
+      case 38: // touche haut
+     test1 =  test1 - 10;
+      valeurDuTopHaut = test1;
+      console.log('Top Haut', valeurDuTopHaut)
+      break;
+      case 40: // touche bas
+      test1 =  test1 + 10;
+      valeurDuTopHaut = test1;
+      console.log('Top Bas', valeurDuTopHaut)
+      break;
+
+      
+    };
+
+// };
+valeurTOPBOTTOM = valeurDuTopHaut
+    mesCoordonnees = {
+      yHaut: valeurTOPBOTTOM,
+      //yBas : valeurDuTopBas
+    }
+
+  // })
+
+
+
+    socket.emit('event', mesCoordonnees);
+
+
+  };
+
+  socket.on('creationCarre', function(argRecup){
+       console.log(argRecup)
+        monCarre = window.document.getElementById(argRecup.id);
+       if(!monCarre){
+         monCarre=window.document.createElement('div');
+         window.document.body.appendChild(monCarre);
+        }
+
+    
+    monCarre.style.width="20px";
+    monCarre.style.height="200px";
+    monCarre.style.left="0px";
+    monCarre.style.position="absolute"
+    monCarre.style.backgroundColor=argRecup.backgroundColor;
+
+
+    
+
+
+
+
+    monCarre.id=argRecup.id;
+    monCarre.style.top = argRecup.topHaut;
+
+
+
+
+    });
+ 
+ socket.on('deleteDiv', function (objet) {
+   var monCarreSupr = window.document.getElementById(objet.id);
+   if(monCarreSupr){
+     monCarreSupr.parentNode.removeChild(monCarreSupr);
+   }
+ })
+      });
+
+    })(window, io);
+  </script>
+  <body>
+    <h1>HTML5/JS & WebSocket</h1>
+
+  </body>
+</html>
