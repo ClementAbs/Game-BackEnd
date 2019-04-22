@@ -9,6 +9,7 @@
 // Chargement du module HTTP.
 const http = require('http');
 
+const port = process.env.PORT;
 
 // Création du serveur HTTP.
 var httpServer = http.createServer();
@@ -354,6 +355,6 @@ var objetVide = {};
 
 
 
-httpServer.listen(8888, function() {
-    console.log("8888!");
+httpServer.listen(port, function() {
+    console.log(port);
 });
