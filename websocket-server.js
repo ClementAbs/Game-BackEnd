@@ -9,48 +9,49 @@
 // Chargement du module HTTP.
 const http = require('http');
 
+
 // Création du serveur HTTP.
 var httpServer = http.createServer();
 
 // Fonction qui produit la réponse HTTP.
 var writeResponse = function writeHTTPResponse(HTTPResponse, responseCode, responseBody) {
-  HTTPResponse.writeHead(responseCode, {
-    'Content-type': 'text/html; charset=UTF-8',
-    'Content-length': responseBody.length
-  });
-  HTTPResponse.write(responseBody, function () {
-    HTTPResponse.end();
-  });
+    HTTPResponse.writeHead(responseCode, {
+        'Content-type': 'text/html; charset=UTF-8',
+        'Content-length': responseBody.length
+    });
+    HTTPResponse.write(responseBody, function() {
+        HTTPResponse.end();
+    });
 };
 
 // Fonction qui produit une réponse HTTP contenant un message d'erreur 404 si le document HTML n'est pas trouvé.
-var send404NotFound = function (HTTPResponse) {
-  writeResponse(HTTPResponse, 404, '<doctype html!><html><head>Page Not Found</head><body><h1>404: Page Not Found</h1><p>The requested URL could not be found</p></body></html>');
-};
+var send404NotFound = function(HTTPResponse) {
+    writeResponse(HTTPResponse, 404, '<doctype html!><html><head>Page Not Found</head><body><h1>404: Page Not Found</h1><p>The requested URL could not be found</p></body></html>');
+}; 
 
 /**
   Gestion de l'évènement 'request' : correspond à la gestion
   de la requête HTTP initiale permettant d'obtenir le fichier
   HTML contenant le code JavaScript utilisant l'API WebSocket.
 **/
-httpServer.on('request', function (HTTPRequest, HTTPResponse) {
-  console.log('Événement HTTP \'request\'.');
-  var fs = require('fs');
-  // Le fichier HTML que nous utiliserons dans tous les cas.
-  var filename = 'websocket-client.html';
-  fs.access(filename, fs.R_OK, function (error) {
-    if (error) {
-      send404NotFound(HTTPResponse);
-    } else {
-      fs.readFile(filename, function (error, fileData) {
+httpServer.on('request', function(HTTPRequest, HTTPResponse) {
+    //console.log('Événement HTTP \'request\'.');
+    var fs = require('fs');
+    // Le fichier HTML que nous utiliserons dans tous les cas.
+    var filename = 'websocket-client.html';
+    fs.access(filename, fs.R_OK, function(error) {
         if (error) {
-          send404NotFound(HTTPResponse);
+            send404NotFound(HTTPResponse);
         } else {
-          writeResponse(HTTPResponse, 200, fileData);
+            fs.readFile(filename, function(error, fileData) {
+                if (error) {
+                    send404NotFound(HTTPResponse);
+                } else {
+                    writeResponse(HTTPResponse, 200, fileData);
+                }
+            });
         }
-      });
-    }
-  });
+    });
 });
 
 /**
@@ -73,6 +74,122 @@ var socketIO = require('socket.io');
 //  On utilise utilise la fonction obtenue avec notre serveur HTTP.
 var socketIOWebSocketServer = socketIO(httpServer);
 
+// INITIALISATION DE LA BASE DE DONNEES
+const mongoClient = require('mongodb').MongoClient;
+const assert = require('assert');
+const mongoUrl = process.env.mongoMonUrl; 
+const Userscoll = 'Userscoll'
+const dbName = 'users';
+const chalk = require('chalk');
+let scoreJoueurs = [];
+const Scores='Scores';
+
+let usersRenvoi = [];
+
+
+socketIOWebSocketServer.on('connection', function(socket) {
+
+
+mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
+    if (erreur) {
+      console.log(chalk.red(`Impossible de se connecter à MongoDB`));
+    } else {
+      let db = client.db(dbName);
+      db.collection(Userscoll, {strict: true}, function(erreur, collection) {
+        if (erreur) {
+          console.log(chalk.red(`Impossible de se connecter à la collection ` + Userscoll));
+          
+        } else {
+          let cursor = collection.find();
+          cursor.toArray(function(erreur, documents) {
+            if (erreur) {
+              console.log(chalk.red(`Impossible de parcourir la collection ` + Userscoll));
+            } else {
+              for (let i = 0; i < documents.length; i++) {
+                usersRenvoi.push(documents[i]);
+              
+              }
+              socketIOWebSocketServer.emit('envoiFront', usersRenvoi);
+            }
+            client.close();
+          });
+        }
+      });
+    }
+  });
+
+
+mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
+    if (erreur) {
+      console.log(chalk.red(`Impossible de se connecter à MongoDB`));
+    } else {
+      let db = client.db(dbName);
+      db.collection(Scores, {strict: true}, function(erreur, collection) {
+        if (erreur) {
+          console.log(chalk.red(`Impossible de se connecter à la collection ` + score));
+          client.close();
+        } else {
+          let cursor = collection.find();
+          cursor.toArray(function(erreur, documents) {
+            if (erreur) {
+              console.log(chalk.red(`Impossible de parcourir la collection ` + score));
+            } else {
+              for (let i = 0; i < documents.length; i++) {
+                scoreJoueurs.push(documents[i]);
+              }
+              socketIOWebSocketServer.emit('listeScores', scoreJoueurs);
+             
+            }
+            client.close();
+          });
+        }
+      });
+    }
+  });
+  
+  
+  socket.on('choucroute', function(evt) {
+    mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
+        
+      if (erreur) {
+        console.log(chalk.red(`Impossible de se connecter à MongoDB`));
+      } else {
+        let db = client.db(dbName);
+      
+        db.collection(Scores).insertOne({
+          scoreJoueurs: evt.score,
+          name: evt.name,
+          date: new Date()
+        }, function(erreur, reponse) {
+          if (erreur) {
+            console.log(chalk.red(`Impossible d'enregistrer le score dans la base de données`));
+          }
+        });
+
+   
+        db.collection(Scores, {strict: true}, function(erreur, collection) {
+          if (erreur) {
+            console.log(chalk.red(`Impossible de se connecter à la collection ` + collectionScores));
+            client.close();
+          } else {
+            let cursorFind = collection.find();
+            cursorFind.toArray(function(erreur, documents) {
+              if (erreur) {
+                console.log(chalk.red(`Impossible de parcourir la collection ` + collectionScores));
+              } else {
+                scoreJoueurs.push(documents[documents.length - 1]);
+                socketIOWebSocketServer.emit('listeScores', scoreJoueurs);
+              }
+              client.close();
+            });
+          }
+        });
+      }
+    });
+  });
+
+
+
 /**
  * Gestion de l'évènement 'connection' : correspond à la gestion
  * d'une requête WebSocket provenant d'un client WebSocket.
@@ -85,91 +202,158 @@ var objetVide = {};
 
 
 
-socketIOWebSocketServer.on('connection', function (socket) {
+    function randomFunction(min, max) {
+        return Math.floor((max - min) * Math.random()) + min
+    };
 
+    var randomNumber = randomFunction(1, 10000);
 
-  function randomFunction (min,max){
-     return Math.floor((max - min) * Math.random())+min
-  };
-
-  var randomNumber = randomFunction(1,10000);
-
-var objetBis ={ 
-  topHaut:"0px",
-  topBas:"0px",
-  id : randomNumber,
-  backgroundColor : '#'+Math.floor(Math.random()*16777215).toString(16)
-};
+    var objetBis = {
+        topHaut: "0px",
+        topBas: "0px",
+        id: randomNumber,
+        backgroundColor: '#' + Math.floor(Math.random() * 500).toString(16)
+    };
 
 
 
 
-
- if(randomNumber){
-
-   console.log(objetBis);
- }
+    socket.on('jeDeclencheMonEventBack', function(Myarg) {
 
 
 
-objetVide[objetBis.id]= objetBis;
-
-socket.emit('creationCarre',objetBis);
+        socketIOWebSocketServer.emit('envoiId', objetBis.id);
 
 
+    })
 
-  // socket : Est un objet qui représente la connexion WebSocket établie entre le client WebSocket et le serveur WebSocket.
 
-  /**
-   * On attache un gestionnaire d'évènement à un évènement personnalisé 'unEvenement'
-   * qui correspond à un événement déclaré coté client qui est déclenché lorsqu'un message
-   * a été reçu en provenance du client WebSocket.
-   */
-  socket.on('unEvenement', function (message) {
 
-    // Affichage du message reçu dans la console.
-    console.log(message);
 
-    // Envoi d'un message au client WebSocket.
-    socket.emit('unAutreEvenement', { texte: 'Message bien reçu !' });
+    objetVide[objetBis.id] = objetBis;
+
+    socket.emit('creationCarre', objetBis);
+
+
+
+    // socket : Est un objet qui représente la connexion WebSocket établie entre le client WebSocket et le serveur WebSocket.
 
     /**
-      On déclare un évènement personnalisé 'unAutreEvenement'
-      dont la réception sera gérée coté client.
-    **/
-  });
+     * On attache un gestionnaire d'évènement à un évènement personnalisé 'unEvenement'
+     * qui correspond à un événement déclaré coté client qui est déclenché lorsqu'un message
+     * a été reçu en provenance du client WebSocket.
+     */
+    socket.on('unEvenement', function(message) {
+
+        // Affichage du message reçu dans la console.
+        console.log(message);
+
+        // Envoi d'un message au client WebSocket.
+        socket.emit('unAutreEvenement', {
+            texte: 'Message bien reçu !'
+        });
+
+        /**
+          On déclare un évènement personnalisé 'unAutreEvenement'
+          dont la réception sera gérée coté client.
+        **/
+    });
 
 
-  socket.on('envoiBack', function (evt) {
+    socket.on('envoiBack2', function(monNom){
 
-    var maVariableBack = evt;
-    console.log(maVariableBack);
-  
-  });
+      console.log(monNom);
+      socket.emit('resultat2', monNom)
+
+    });
 
 
-  socket.on('event', function(movecarre){
-      objetBis.topHaut=movecarre.yHaut;
-      objetBis.topBas=movecarre.yBas;
-      // console.log("Haut NEW", movecarre.yHaut);
-      // console.log("Bas NEW", movecarre.yBas);
+    socket.on('envoiInsc', function(evenementReceive){
 
-      socketIOWebSocketServer.emit('creationCarre', objetBis)
-  });
+        console.log(evenementReceive);  
+    });
 
-  socket.on('disconnect', function () {
+    socket.on('envoiInsc2', function(evenementReceive2){
 
-    delete objetVide[objetBis.id];
-    socketIOWebSocketServer.emit('deleteDiv', objetBis);
-  })
-  
+        console.log(evenementReceive2);  
+    });
+
+
+    socket.on('envoiBack', function(evt) {
+
+        console.log(evt);
+
+        valeurId = objetBis.id;
+
+        var score = 0;
+
+        // console.log(valeurId); //  Valeur aléatoire générée automatiquement
+
+        console.log("Yo ta valeur c'est " + valeurId);
+        valeurId = parseInt(valeurId, 10);
+
+        if (valeurId == evt)
+
+        {
+            console.log("Yo ta valeur c'est " + valeurId);
+
+            score++;
+            socket.emit('resultat', {
+                clement: "egal",
+                score
+            });
+
+
+        }
+        if (valeurId < evt) {
+            console.log("Yo ta valeur c'est " + valeurId);
+
+
+            socket.emit('resultat', {
+                clement: "moin",
+                score
+            });
+
+        }
+        if (valeurId > evt) {
+            console.log("Yo ta valeur c'est " + valeurId);
+
+
+            socket.emit('resultat', {
+                clement: "sup",
+                score
+            });
+        }
+
+
+
+
+    });
+
+
+
+
+    socket.on('event', function(movecarre) {
+        objetBis.topHaut = movecarre.yHaut;
+        objetBis.topBas = movecarre.yBas;
+        // console.log("Haut NEW", movecarre.yHaut);
+        // console.log("Bas NEW", movecarre.yBas);
+
+        socketIOWebSocketServer.emit('creationCarre', objetBis)
+    });
+
+    socket.on('disconnect', function() {
+
+        delete objetVide[objetBis.id];
+        socketIOWebSocketServer.emit('deleteDiv', objetBis);
+    })
+
 
 });
 
 
 
 
-
-httpServer.listen(8888, function(){
-  console.log("8888!");
+httpServer.listen(8888, function() {
+    console.log("8888!");
 });

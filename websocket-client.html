@@ -1,133 +1,135 @@
 <doctype html!>
 <html>
   <head>
-    <title>HTML5/JS & Websockets</title>
-    <form id="form">
-    First name: <input type="text" id="firstname" name="fname"><br>
-  </form>
+    <title>Atelier Back-End</title>
+  <link rel="stylesheet" href="bootstrap.css"/>
   </head>
+  <h1>Trouve ton ID en suivant la consigne ! Bonne chance !</h1>
+  <body>
+    
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <a class="navbar-brand" href="#">Atelier Back-End</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    
+      <div class="collapse navbar-collapse" id="navbarColor01">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">IFOCOP <span class="sr-only">(current)</span></a>
+          </li>
+        </ul>
+        <form class="form-inline my-2 my-lg-0">
+          <input class="form-control mr-sm-2" type="text" placeholder="Search">
+          <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
+        </form>
+      </div>
+    </nav><br />
+    <h1>Jeu Back-End</h1><br />
+    <h2>Inscription</h2>
+
+      <form>
+
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input type="email" class="form-control" id="email" aria-describedby="email" placeholder="Entre ton email">
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" class="form-control" id="password" placeholder="Mot de Passe" name="password">
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="validationInsc">Envoyer</button>
+      </form>
+
+
+
+
+    <form id="form">
+      First name: <input type="text" id="firstname" name="fname"><br>
+      Mot de Passe: <input type="text" id="motdepasse" name="password"><br>
+      Trouve ton id: <input type="text" id="myid" name="myidentifiant" ><br>
+      <button id="validation">Valider</button>
+    </form>
+  </body>
   <script href="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
   <!-- Chargement du "framework" client socket.io -->
   <script type="text/javascript" src="/socket.io/socket.io.js"></script>
- 
+  
   <script type="text/javascript">
-    (function(window, io) {
+  (function(window, io) {
+    var socket = io('http://127.0.0.1:8888/');
+//Au chargement du document
+window.addEventListener('DOMContentLoaded', function() {
 
-      //Au chargement du document
-      window.addEventListener('DOMContentLoaded',function() {
+      var emailInscription = document.getElementById(email);
+      var passwordInscription = document.getElementById(password);
 
-        var socket = io('http://127.0.0.1:8888/');
+      document.getElementById('validationInsc').addEventListener('click', function(evtInscription){
+        evtInscription.preventDefault();
+        console.log("jai clické !!"); 
+       
+        socket.emit('envoiInsc', email.value);
+        socket.emit('envoiInsc2', password.value);
 
-        // socket : Est un objet qui représente la connexion WebSocket établie entre le client WebSocket et le serveur WebSocket.
-
-         var maVariable2 = window.document.getElementById("form");
-         var maVariable = window.document.getElementById("firstname");
-
-         maVariable2.addEventListener('submit', function(evt){
-         console.log(maVariable.value);
-         var maVariableStocke = maVariable.value;
-         socket.emit('envoiBack',maVariableStocke);
-         evt.preventDefault();
-        });
-         
-        var a=5;
-
-        
-
-
-    
-        socket.on('unAutreEvenement', function (data) {
-
-          console.log(data);
-        });
-        var monCarre;
-        var test1 = 0;
-          
-  var valeurDuTopHaut, valeurDuTopBas;
-// maDiv.style.width = '50px';
-// maDiv.style.height = '50px';
-// maDiv.style.backgroundColor = "grey";
-// maDiv.style.position = "absolute";
-
-console.log(onkeydown);
-// window.addEventListener('movecarre', function(KeyboardEvent){
-  window.onkeydown = function(event) {  
-    var maDiv = {};
-    
-    switch (event.keyCode){                      
-      
-      
-      case 38: // touche haut
-     test1 =  test1 - 10;
-      valeurDuTopHaut = test1;
-      console.log('Top Haut', valeurDuTopHaut)
-      break;
-      case 40: // touche bas
-      test1 =  test1 + 10;
-      valeurDuTopHaut = test1;
-      console.log('Top Bas', valeurDuTopHaut)
-      break;
-
-      
-    };
-
-// };
-valeurTOPBOTTOM = valeurDuTopHaut
-    mesCoordonnees = {
-      yHaut: valeurTOPBOTTOM,
-      //yBas : valeurDuTopBas
-    }
-
-  // })
-
-
-
-    socket.emit('event', mesCoordonnees);
-
-
-  };
-
-  socket.on('creationCarre', function(argRecup){
-       console.log(argRecup)
-        monCarre = window.document.getElementById(argRecup.id);
-       if(!monCarre){
-         monCarre=window.document.createElement('div');
-         window.document.body.appendChild(monCarre);
-        }
-
-    
-    monCarre.style.width="20px";
-    monCarre.style.height="200px";
-    monCarre.style.left="0px";
-    monCarre.style.position="absolute"
-    monCarre.style.backgroundColor=argRecup.backgroundColor;
-
-
-    
-
-
-
-
-    monCarre.id=argRecup.id;
-    monCarre.style.top = argRecup.topHaut;
-
-
-
-
-    });
- 
- socket.on('deleteDiv', function (objet) {
-   var monCarreSupr = window.document.getElementById(objet.id);
-   if(monCarreSupr){
-     monCarreSupr.parentNode.removeChild(monCarreSupr);
-   }
- })
       });
 
-    })(window, io);
-  </script>
-  <body>
-    <h1>HTML5/JS & WebSocket</h1>
+      socket.on('envoiFront', function(monevtInsc){
 
-  </body>
+        console.log(monevtInsc);
+
+      });
+
+
+    // socket : Est un objet qui représente la connexion WebSocket établie entre le client WebSocket et le serveur WebSocket.
+
+    var firstName = window.document.getElementById("firstname")  ;
+    var maVariable = window.document.getElementById("myid");
+
+  
+    document.getElementById('validation').addEventListener('click', function(evt) {
+      evt.preventDefault();
+        console.log('Identifiant div: ' + myid.value);
+        console.log('Prénom: '+firstName.value);
+        var maVariableStocke = myid.value;
+        socket.emit('envoiBack', maVariableStocke);
+        socket.emit('envoiBack2', firstName.value);
+      
+
+socket.on('resultat', function(evt) {
+      evt.name = firstName.value;
+
+if (evt.clement == "sup") {
+     alert("C'est plus ! Ton score est de : " + evt.score)
+}
+if (evt.clement == "moin") {
+     alert("C'est moin ! Ton score est de : " + evt.score)
+}
+
+if (evt.clement == "egal") {
+     alert("C'est egal bien joué ! Ton score est de : " + evt.score)
+}
+socket.emit('choucroute', evt);
+console.log("Le score est de " +evt.score);
+
+});
+    });
+
+
+});
+
+
+socket.on('resultat2', function(evt2){
+
+    console.log(evt2);
+
+});
+
+
+
+
+})(window, io);
+  </script>
+ 
 </html>
