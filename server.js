@@ -77,8 +77,7 @@ var socketIOWebSocketServer = socketIO(httpServer);
 
 // INITIALISATION DE LA BASE DE DONNEES
 const mongoClient = require('mongodb').MongoClient;
-const assert = require('assert');
-const MONGODB_URI = process.env.MONGODB_URI; 
+const mongoUrl = process.env.MONGODB_URI; 
 const Userscoll = 'Userscoll'
 const dbName = 'users';
 const chalk = require('chalk');
