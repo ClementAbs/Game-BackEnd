@@ -90,7 +90,7 @@ let usersRenvoi = [];
 
 socketIOWebSocketServer.on('connection', function(socket) {
 
-
+  /**
 mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
     if (erreur) {
       console.log(chalk.red(`Impossible de se connecter à MongoDB`));
@@ -148,7 +148,7 @@ mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) 
     }
   });
   
-  
+  **/
   socket.on('choucroute', function(evt) {
     mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
         
