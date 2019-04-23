@@ -90,95 +90,26 @@ let usersRenvoi = [];
 socketIOWebSocketServer.on('connection', function(socket) {
 
 
-mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
-    if (erreur) {
-      console.log(chalk.red(`Impossible de se connecter à MongoDB`));
-    } else {
-      let db = client.db(dbName);
-      db.collection(Userscoll, {strict: true}, function(erreur, collection) {
-        if (erreur) {
-          console.log(chalk.red(`Impossible de se connecter à la collection ` + Userscoll));
-          
-        } else {
-          let cursor = collection.find();
-          cursor.toArray(function(erreur, documents) {
-            if (erreur) {
-              console.log(chalk.red(`Impossible de parcourir la collection ` + Userscoll));
-            } else {
-              for (let i = 0; i < documents.length; i++) {
-                usersRenvoi.push(documents[i]);
-              
-              }
-              socketIOWebSocketServer.emit('envoiFront', usersRenvoi);
-            }
-            client.close();
-          });
-        }
-      });
-    }
-  });
-
-
-mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
-    if (erreur) {
-      console.log(chalk.red(`Impossible de se connecter à MongoDB`));
-    } else {
-      let db = client.db(dbName);
-      db.collection(Scores, {strict: true}, function(erreur, collection) {
-        if (erreur) {
-          console.log(chalk.red(`Impossible de se connecter à la collection ` + score));
-          client.close();
-        } else {
-          let cursor = collection.find();
-          cursor.toArray(function(erreur, documents) {
-            if (erreur) {
-              console.log(chalk.red(`Impossible de parcourir la collection ` + score));
-            } else {
-              for (let i = 0; i < documents.length; i++) {
-                scoreJoueurs.push(documents[i]);
-              }
-              socketIOWebSocketServer.emit('listeScores', scoreJoueurs);
-             
-            }
-            client.close();
-          });
-        }
-      });
-    }
-  });
-  
-  
-  socket.on('choucroute', function(evt) {
-    mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
-        
+  mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
       if (erreur) {
         console.log(chalk.red(`Impossible de se connecter à MongoDB`));
       } else {
         let db = client.db(dbName);
-      
-        db.collection(Scores).insertOne({
-          scoreJoueurs: evt.score,
-          name: evt.name,
-          date: new Date()
-        }, function(erreur, reponse) {
+        db.collection(Userscoll, {strict: true}, function(erreur, collection) {
           if (erreur) {
-            console.log(chalk.red(`Impossible d'enregistrer le score dans la base de données`));
-          }
-        });
-
-   
-        db.collection(Scores, {strict: true}, function(erreur, collection) {
-          if (erreur) {
-            console.log(chalk.red(`Impossible de se connecter à la collection ` + collectionScores));
-            client.close();
+            console.log(chalk.red(`Impossible de se connecter à la collection ` + Userscoll));
+            
           } else {
-            let cursorFind = collection.find();
-            cursorFind.toArray(function(erreur, documents) {
+            let cursor = collection.find();
+            cursor.toArray(function(erreur, documents) {
               if (erreur) {
-                console.log(chalk.red(`Impossible de parcourir la collection ` + collectionScores));
+                console.log(chalk.red(`Impossible de parcourir la collection ` + Userscoll));
               } else {
-                scoreJoueurs.push(documents[documents.length - 1]);
-                socketIOWebSocketServer.emit('listeScores', scoreJoueurs);
+                for (let i = 0; i < documents.length; i++) {
+                  usersRenvoi.push(documents[i]);
+                
+                }
+                socketIOWebSocketServer.emit('envoiFront', usersRenvoi);
               }
               client.close();
             });
@@ -186,7 +117,76 @@ mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) 
         });
       }
     });
-  });
+
+
+  mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
+      if (erreur) {
+        console.log(chalk.red(`Impossible de se connecter à MongoDB`));
+      } else {
+        let db = client.db(dbName);
+        db.collection(Scores, {strict: true}, function(erreur, collection) {
+          if (erreur) {
+            console.log(chalk.red(`Impossible de se connecter à la collection ` + score));
+            client.close();
+          } else {
+            let cursor = collection.find();
+            cursor.toArray(function(erreur, documents) {
+              if (erreur) {
+                console.log(chalk.red(`Impossible de parcourir la collection ` + score));
+              } else {
+                for (let i = 0; i < documents.length; i++) {
+                  scoreJoueurs.push(documents[i]);
+                }
+                socketIOWebSocketServer.emit('listeScores', scoreJoueurs);
+              
+              }
+              client.close();
+            });
+          }
+        });
+      }
+    });
+    
+    
+    socket.on('choucroute', function(evt) {
+      mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
+          
+        if (erreur) {
+          console.log(chalk.red(`Impossible de se connecter à MongoDB`));
+        } else {
+          let db = client.db(dbName);
+        
+          db.collection(Scores).insertOne({
+            scoreJoueurs: evt.score,
+            name: evt.name,
+            date: new Date()
+          }, function(erreur, reponse) {
+            if (erreur) {
+              console.log(chalk.red(`Impossible d'enregistrer le score dans la base de données`));
+            }
+          });
+
+    
+          db.collection(Scores, {strict: true}, function(erreur, collection) {
+            if (erreur) {
+              console.log(chalk.red(`Impossible de se connecter à la collection ` + collectionScores));
+              client.close();
+            } else {
+              let cursorFind = collection.find();
+              cursorFind.toArray(function(erreur, documents) {
+                if (erreur) {
+                  console.log(chalk.red(`Impossible de parcourir la collection ` + collectionScores));
+                } else {
+                  scoreJoueurs.push(documents[documents.length - 1]);
+                  socketIOWebSocketServer.emit('listeScores', scoreJoueurs);
+                }
+                client.close();
+              });
+            }
+          });
+        }
+      });
+    });
 
 
 
