@@ -5,7 +5,7 @@
 
 
 
-// Chargement du module HTTP.
+// Char ment du module HTTP.
 const http = require('http');
 
 const port = process.env.PORT;
@@ -38,7 +38,7 @@ httpServer.on('request', function(HTTPRequest, HTTPResponse) {
     //console.log('Événement HTTP \'request\'.');
     var fs = require('fs');
     // Le fichier HTML que nous utiliserons dans tous les cas.
-    var filename = 'websocket-client.html';
+    var filename = 'index.html';
     fs.access(filename, fs.R_OK, function(error) {
         if (error) {
             send404NotFound(HTTPResponse);
