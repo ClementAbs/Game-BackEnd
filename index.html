@@ -48,7 +48,7 @@
 
     <form id="form">
       First name: <input type="text" id="firstname" name="fname"><br>
-      Mot de Passe: <input type="text" id="motdepasse" name="password"><br>
+      Mot de Passe: <input type="password" id="motdepasse" name="password"><br>
       Trouve ton id: <input type="text" id="myid" name="myidentifiant" ><br>
       <button id="validation">Valider</button>
     </form>
@@ -108,7 +108,7 @@ if (evt.clement == "moin") {
 }
 
 if (evt.clement == "egal") {
-     alert("C'est egal bien joué ! Ton score est de : " + evt.score)
+     alert("C'est egal bien joué ! Tu peux le crier à ton partenaire :p Ton score est de : " + evt.score)
 }
 socket.emit('choucroute', evt);
 console.log("Le score est de " +evt.score);
