@@ -1,11 +1,6 @@
 
 
-
-
-
-
-
-// Char ment du module HTTP.
+// Chargement du module HTTP.
 const http = require('http');
 
 const port = process.env.PORT;
@@ -92,18 +87,18 @@ socketIOWebSocketServer.on('connection', function(socket) {
 
   mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
       if (erreur) {
-        console.log(chalk.red(`Impossible de se connecter à MongoDB`));
+        console.log(chalk.purple(`Pas de connexion à MongoDB`));
       } else {
         let db = client.db(dbName);
         db.collection(Userscoll, {strict: true}, function(erreur, collection) {
           if (erreur) {
-            console.log(chalk.red(`Impossible de se connecter à la collection ` + Userscoll));
+            console.log(chalk.purple(`Pas de connexion à la collection ` + Userscoll));
             
           } else {
             let cursor = collection.find();
             cursor.toArray(function(erreur, documents) {
               if (erreur) {
-                console.log(chalk.red(`Impossible de parcourir la collection ` + Userscoll));
+                console.log(chalk.purple(`Pas de connexion en parcourant la collection ` + Userscoll));
               } else {
                 for (let i = 0; i < documents.length; i++) {
                   usersRenvoi.push(documents[i]);
@@ -121,18 +116,18 @@ socketIOWebSocketServer.on('connection', function(socket) {
 
   mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
       if (erreur) {
-        console.log(chalk.red(`Impossible de se connecter à MongoDB`));
+        console.log(chalk.purple(`Pas de connexion à MongoDB`));
       } else {
         let db = client.db(dbName);
         db.collection(Scores, {strict: true}, function(erreur, collection) {
           if (erreur) {
-            console.log(chalk.red(`Impossible de se connecter à la collection ` + score));
+            console.log(chalk.purple(`Pas de connexion à la collection ` + score));
             client.close();
           } else {
             let cursor = collection.find();
             cursor.toArray(function(erreur, documents) {
               if (erreur) {
-                console.log(chalk.red(`Impossible de parcourir la collection ` + score));
+                console.log(chalk.purple(`Pas de connexion en parcourant la collection  ` + score));
               } else {
                 for (let i = 0; i < documents.length; i++) {
                   scoreJoueurs.push(documents[i]);
@@ -152,7 +147,7 @@ socketIOWebSocketServer.on('connection', function(socket) {
       mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
           
         if (erreur) {
-          console.log(chalk.red(`Impossible de se connecter à MongoDB`));
+          console.log(chalk.purple(`Pas de connexion à MongoDB`));
         } else {
           let db = client.db(dbName);
         
@@ -162,20 +157,20 @@ socketIOWebSocketServer.on('connection', function(socket) {
             date: new Date()
           }, function(erreur, reponse) {
             if (erreur) {
-              console.log(chalk.red(`Impossible d'enregistrer le score dans la base de données`));
+              console.log(chalk.purple(`Score non enregistré dans la base de données`));
             }
           });
 
     
           db.collection(Scores, {strict: true}, function(erreur, collection) {
             if (erreur) {
-              console.log(chalk.red(`Impossible de se connecter à la collection ` + collectionScores));
+              console.log(chalk.purple(`PAs de connexion à la collection ` + collectionScores));
               client.close();
             } else {
               let cursorFind = collection.find();
               cursorFind.toArray(function(erreur, documents) {
                 if (erreur) {
-                  console.log(chalk.red(`Impossible de parcourir la collection ` + collectionScores));
+                  console.log(chalk.purple(`Pas de connexion en parcourant la collection ` + collectionScores));
                 } else {
                   scoreJoueurs.push(documents[documents.length - 1]);
                   socketIOWebSocketServer.emit('listeScores', scoreJoueurs);
