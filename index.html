@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Atelier Back-End</title>
-  <link rel="stylesheet" href="bootstrap.css"/>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/flatly/bootstrap.min.css"/>
   </head>
   <h1>Trouve ton ID en suivant la consigne ! Bonne chance !</h1>
   <body>
@@ -31,8 +31,8 @@
       <form>
 
         <div class="form-group">
-          <label for="email">Email address</label>
-          <input type="email" class="form-control" id="email" aria-describedby="email" placeholder="Entre ton email">
+          <label for="prenomInsc">First name</label>
+          <input type="text" class="form-control" id="prenomInsc" aria-describedby="prenomInsc " placeholder="Entre ton prenom">
         </div>
 
         <div class="form-group">
@@ -48,7 +48,7 @@
 
     <form id="form">
       First name: <input type="text" id="firstname" name="fname"><br>
-      Mot de Passe: <input type="text" id="motdepasse" name="password"><br>
+      Mot de Passe: <input type="password" id="motdepasse" name="password"><br>
       Trouve ton id: <input type="text" id="myid" name="myidentifiant" ><br>
       <button id="validation">Valider</button>
     </form>
@@ -63,14 +63,14 @@
 //Au chargement du document
 window.addEventListener('DOMContentLoaded', function() {
 
-      var emailInscription = document.getElementById(email);
+      var emailInscription = document.getElementById(prenomInsc);
       var passwordInscription = document.getElementById(password);
 
       document.getElementById('validationInsc').addEventListener('click', function(evtInscription){
         evtInscription.preventDefault();
         console.log("jai clické !!"); 
        
-        socket.emit('envoiInsc', email.value);
+        socket.emit('envoiInsc', prenomInsc.value);
         socket.emit('envoiInsc2', password.value);
 
       });
@@ -108,7 +108,11 @@ if (evt.clement == "moin") {
 }
 
 if (evt.clement == "egal") {
+<<<<<<< HEAD
      alert("C'est egal bien joué ! Tu peux le crier à ton partenaire :p ! Ton score est de : " + evt.score)
+=======
+     alert("C'est egal bien joué ! Tu peux le crier à ton partenaire :p Ton score est de : " + evt.score)
+>>>>>>> a31b5400a786fd4a882e6e2aaffa461f6d5ecbbb
 }
 socket.emit('choucroute', evt);
 console.log("Le score est de " +evt.score);
