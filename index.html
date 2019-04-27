@@ -108,7 +108,7 @@ if (evt.clement == "moin") {
 }
 
 if (evt.clement == "egal") {
-     alert("C'est egal bien joué ! Ton score est de : " + evt.score)
+     alert("C'est egal bien joué ! Tu peux le crier à ton partenaire :p ! Ton score est de : " + evt.score)
 }
 socket.emit('choucroute', evt);
 console.log("Le score est de " +evt.score);
@@ -118,6 +118,15 @@ console.log("Le score est de " +evt.score);
 
 
 });
+
+
+
+socket.emit('newPlayer', myid.value);
+
+
+
+socket.emit('joueur', myid.value);
+
 
 
 socket.on('resultat2', function(evt2){

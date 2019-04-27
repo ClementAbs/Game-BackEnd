@@ -1,5 +1,6 @@
 
 
+
 // Chargement du module HTTP.
 const http = require('http');
 
@@ -7,6 +8,9 @@ const port = process.env.PORT;
 
 // Création du serveur HTTP.
 var httpServer = http.createServer();
+
+var socket = io.connect('http://localhost:8888');
+
 
 // Fonction qui produit la réponse HTTP.
 var writeResponse = function writeHTTPResponse(HTTPResponse, responseCode, responseBody) {
@@ -71,7 +75,7 @@ var socketIOWebSocketServer = socketIO(httpServer);
 
 // INITIALISATION DE LA BASE DE DONNEES
 const mongoClient = require('mongodb').MongoClient;
-const mongoUrl = 'mongodb+srv://clementabs:1HLI1WtPSO8hDcf5@cluster0-bcewv.mongodb.net/test?retryWrites=true'; 
+const mongoUrl = MONGODB_URI; 
 
 const Userscoll = 'Userscoll'
 const dbName = 'users';
@@ -347,6 +351,33 @@ var objetVide = {};
 });
 
 
-httpServer.listen(port, function() {
-    console.log(port);
+const gameState = {
+  players: {}
+}
+
+
+socket.on('newPlayer', function(){
+  gameState.players[socket.id] = {
+    value : myid.value
+  }
 });
+
+var app = require('http').createServer()
+var io = require('socket.io')(app);
+
+io.on('connection', (monid) => {
+  console.log('a user connected:', monid.id);
+  io.on('disconnect', function() {
+    console.log('user disconnected');
+  });
+}); 
+
+
+
+
+
+
+httpServer.listen(8888, function() {
+    console.log("8888 !");
+});
+
