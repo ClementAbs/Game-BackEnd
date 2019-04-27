@@ -23,7 +23,7 @@ var socketIOWebSocketServer = socketIO(httpServer);
 
 // INITIALISATION DE LA BASE DE DONNEES
 const mongoClient = require('mongodb').MongoClient;
-const mongoUrl = MONGODB_URI; 
+const mongoUrl = MONGODB_URI -a ; 
 
 const Userscoll = 'Userscoll'
 const dbName = 'users';
