@@ -9,7 +9,30 @@ const port = process.env.PORT;
 // Création du serveur HTTP.
 var httpServer = http.createServer();
 
-var socket = io.connect('http://localhost:8888');
+/**
+ * On installe et on utilise le package socket.io.
+ * La documentation est ici :
+ * - https://www.npmjs.com/package/socket.io
+ * - https://github.com/socketio/socket.io
+ * - http://socket.io/
+ */
+var socketIO = require('socket.io');
+
+//  On utilise utilise la fonction obtenue avec notre serveur HTTP.
+var socketIOWebSocketServer = socketIO(httpServer);
+
+// INITIALISATION DE LA BASE DE DONNEES
+const mongoClient = require('mongodb').MongoClient;
+const mongoUrl = MONGODB_URI; 
+
+const Userscoll = 'Userscoll'
+const dbName = 'users';
+const chalk = require('chalk');
+let scoreJoueurs = [];
+const Scores='Scores';
+
+let usersRenvoi = [];
+
 
 
 // Fonction qui produit la réponse HTTP.
@@ -61,29 +84,6 @@ httpServer.on('request', function(HTTPRequest, HTTPResponse) {
  * une connexion persistante basée sur WebSocket.
  */
 
-/**
- * On installe et on utilise le package socket.io.
- * La documentation est ici :
- * - https://www.npmjs.com/package/socket.io
- * - https://github.com/socketio/socket.io
- * - http://socket.io/
- */
-var socketIO = require('socket.io');
-
-//  On utilise utilise la fonction obtenue avec notre serveur HTTP.
-var socketIOWebSocketServer = socketIO(httpServer);
-
-// INITIALISATION DE LA BASE DE DONNEES
-const mongoClient = require('mongodb').MongoClient;
-const mongoUrl = MONGODB_URI; 
-
-const Userscoll = 'Userscoll'
-const dbName = 'users';
-const chalk = require('chalk');
-let scoreJoueurs = [];
-const Scores='Scores';
-
-let usersRenvoi = [];
 
 
 socketIOWebSocketServer.on('connection', function(socket) {
@@ -350,33 +350,7 @@ var objetVide = {};
 
 });
 
-
-const gameState = {
-  players: {}
-}
-
-
-socket.on('newPlayer', function(){
-  gameState.players[socket.id] = {
-    value : myid.value
-  }
-});
-
-var app = require('http').createServer()
-var io = require('socket.io')(app);
-
-io.on('connection', (monid) => {
-  console.log('a user connected:', monid.id);
-  io.on('disconnect', function() {
-    console.log('user disconnected');
-  });
-}); 
-
-
-
-
-
-
+-
 httpServer.listen(8888, function() {
     console.log("8888 !");
 });
