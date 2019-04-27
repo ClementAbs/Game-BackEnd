@@ -6,6 +6,8 @@ const http = require('http');
 
 const port = process.env.PORT;
 
+
+
 // Création du serveur HTTP.
 var httpServer = http.createServer();
 
@@ -23,7 +25,7 @@ var socketIOWebSocketServer = socketIO(httpServer);
 
 // INITIALISATION DE LA BASE DE DONNEES
 const mongoClient = require('mongodb').MongoClient;
-const mongoUrl = MONGODB_URI -a ; 
+const mongoUrl = process.env.MONGODB_URI; 
 
 const Userscoll = 'Userscoll'
 const dbName = 'users';
@@ -351,7 +353,7 @@ var objetVide = {};
 });
 
 -
-httpServer.listen(8888, function() {
-    console.log("8888 !");
+httpServer.listen(port, function() {
+    console.log();
 });
 
