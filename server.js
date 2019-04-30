@@ -1,41 +1,10 @@
 
-
-
 // Chargement du module HTTP.
 const http = require('http');
-
-const port = process.env.PORT;
-
 
 
 // Création du serveur HTTP.
 var httpServer = http.createServer();
-
-/**
- * On installe et on utilise le package socket.io.
- * La documentation est ici :
- * - https://www.npmjs.com/package/socket.io
- * - https://github.com/socketio/socket.io
- * - http://socket.io/
- */
-var socketIO = require('socket.io');
-
-//  On utilise utilise la fonction obtenue avec notre serveur HTTP.
-var socketIOWebSocketServer = socketIO(httpServer);
-
-// INITIALISATION DE LA BASE DE DONNEES
-const mongoClient = require('mongodb').MongoClient;
-const mongoUrl = process.env.MONGODB_URI; 
-
-const Userscoll = 'Userscoll'
-const dbName = 'users';
-const chalk = require('chalk');
-let scoreJoueurs = [];
-const Scores='Scores';
-
-let usersRenvoi = [];
-
-
 
 // Fonction qui produit la réponse HTTP.
 var writeResponse = function writeHTTPResponse(HTTPResponse, responseCode, responseBody) {
@@ -86,115 +55,270 @@ httpServer.on('request', function(HTTPRequest, HTTPResponse) {
  * une connexion persistante basée sur WebSocket.
  */
 
+/**
+ * On installe et on utilise le package socket.io.
+ * La documentation est ici :
+ * - https://www.npmjs.com/package/socket.io
+ * - https://github.com/socketio/socket.io
+ * - http://socket.io/
+ */
+var socketIO = require('socket.io');
+
+//  On utilise utilise la fonction obtenue avec notre serveur HTTP.
+var socket = socketIO(httpServer);
+
+// INITIALISATION DE LA BASE DE DONNEES
+const mongoClient = require('mongodb').MongoClient;
+const mongoUrl = process.env.MONGODB_URI; 
+
+const Userscoll = 'Userscoll'
+const dbName = 'users';
+const chalk = require('chalk');
+let scoreJoueurs = [];
+const Scores='Scores';
+
+let usersRenvoi = [];
 
 
-socketIOWebSocketServer.on('connection', function(socket) {
-
-
-  mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
-      if (erreur) {
-        console.log(chalk.purple(`Pas de connexion à MongoDB`));
-      } else {
-        let db = client.db(dbName);
-        db.collection(Userscoll, {strict: true}, function(erreur, collection) {
-          if (erreur) {
-            console.log(chalk.purple(`Pas de connexion à la collection ` + Userscoll));
-            
-          } else {
-            let cursor = collection.find();
-            cursor.toArray(function(erreur, documents) {
-              if (erreur) {
-                console.log(chalk.purple(`Pas de connexion en parcourant la collection ` + Userscoll));
-              } else {
-                for (let i = 0; i < documents.length; i++) {
-                  usersRenvoi.push(documents[i]);
-                
-                }
-                socketIOWebSocketServer.emit('envoiFront', usersRenvoi);
-              }
-              client.close();
-            });
-          }
-        });
-      }
-    });
-
-
-  mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
-      if (erreur) {
-        console.log(chalk.purple(`Pas de connexion à MongoDB`));
-      } else {
-        let db = client.db(dbName);
-        db.collection(Scores, {strict: true}, function(erreur, collection) {
-          if (erreur) {
-            console.log(chalk.purple(`Pas de connexion à la collection ` + score));
-            client.close();
-          } else {
-            let cursor = collection.find();
-            cursor.toArray(function(erreur, documents) {
-              if (erreur) {
-                console.log(chalk.purple(`Pas de connexion en parcourant la collection  ` + score));
-              } else {
-                for (let i = 0; i < documents.length; i++) {
-                  scoreJoueurs.push(documents[i]);
-                }
-                socketIOWebSocketServer.emit('listeScores', scoreJoueurs);
-              
-              }
-              client.close();
-            });
-          }
-        });
-      }
-    });
-    
-    
-    socket.on('choucroute', function(evt) {
-      mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
-          
-        if (erreur) {
-          console.log(chalk.purple(`Pas de connexion à MongoDB`));
-        } else {
-          let db = client.db(dbName);
+socket.on('connection', function(socket) {
         
-          db.collection(Scores).insertOne({
-            scoreJoueurs: evt.score,
-            name: evt.name,
-            date: new Date()
-          }, function(erreur, reponse) {
+  
+mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
+    if (erreur) {
+      console.log(chalk.magenta(`Pas de connexion à MongoDB`));
+    } else {
+      let db = client.db(dbName);
+      db.collection(Userscoll, {strict: true}, function(erreur, collection) {
+        if (erreur) {
+          console.log(chalk.magenta(`Pas de connexion pour la collection` + Userscoll));
+          
+        } else {
+          let cursor = collection.find();
+          cursor.toArray(function(erreur, documents) {
             if (erreur) {
-              console.log(chalk.purple(`Score non enregistré dans la base de données`));
-            }
-          });
-
-    
-          db.collection(Scores, {strict: true}, function(erreur, collection) {
-            if (erreur) {
-              console.log(chalk.purple(`PAs de connexion à la collection ` + collectionScores));
-              client.close();
+              console.log(chalk.magenta(`Pas de connexion en parcourant la collection` + Userscoll));
             } else {
-              let cursorFind = collection.find();
-              cursorFind.toArray(function(erreur, documents) {
-                if (erreur) {
-                  console.log(chalk.purple(`Pas de connexion en parcourant la collection ` + collectionScores));
-                } else {
-                  scoreJoueurs.push(documents[documents.length - 1]);
-                  socketIOWebSocketServer.emit('listeScores', scoreJoueurs);
-                }
-                client.close();
-              });
+              for (let i = 0; i < documents.length; i++) {
+                // if(documents[i]=! socket)
+                usersRenvoi.push(documents[i]);
+              }
+              socket.emit('envoiFront', usersRenvoi);
             }
+            client.close();
           });
         }
       });
+    }
+  });
+
+// Envoi du Score
+mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
+    if (erreur) {
+      console.log(chalk.magenta(`Pas de connexion à MongoDB`));
+    } else {
+      let db = client.db(dbName);
+      db.collection(Scores, {strict: true}, function(erreur, collection) {
+        if (erreur) {
+          console.log(chalk.magenta(`Pas de connexion pour la collection` + score));
+          client.close();
+        } else {
+          let cursor = collection.find();
+          cursor.toArray(function(erreur, documents) {
+            if (erreur) {
+              console.log(chalk.magenta(`Pas de connexion en parcourant la collection` + score));
+            } else {
+              for (let i = 0; i < documents.length; i++) {
+                scoreJoueurs.push(documents[i]);
+              }
+              socket.emit('listeScores', scoreJoueurs);
+             
+            }
+            client.close();
+          });
+        }
+      });
+    }
+  });
+  
+  // Envoi du Score lors de la connexion + Nom + Date
+  socket.on('choucroute', function(evt) {
+    mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
+        
+      if (erreur) {
+        console.log(chalk.magenta(`Pas de connexion à MongoDB`));
+      } else {
+        let db = client.db(dbName);
+      
+        db.collection(Scores).insertOne({
+          scoreJoueurs: evt.score,
+          name: evt.name,
+          date: new Date()
+        }, function(erreur, reponse) {
+          if (erreur) {
+            console.log(chalk.magenta(`Score non enregistré dans la base de données`));
+          }
+        });
+
+   
+        db.collection(Scores, {strict: true}, function(erreur, collection) {
+          if (erreur) {
+            console.log(chalk.magenta(`Pas de connexion pour la collection` + Scores));
+            client.close();
+          } else {
+            let cursorFind = collection.find();
+            cursorFind.toArray(function(erreur, documents) {
+              if (erreur) {
+                console.log(chalk.magenta(`Pas de connexion en parcourant la collection` + Scores));
+              } else {
+                scoreJoueurs.push(documents[documents.length - 1]);
+                socket.emit('listeScores', scoreJoueurs);
+              }
+              client.close();
+            });
+          }
+        })
+     
+      }
+    });
+  });
+
+
+
+//Check si le prénom est disponible dans la BDD
+    socket.on('envoiInsc', function(monevtQuiGereTheinscPrenom) {
+
+        var monPrenom=monevtQuiGereTheinscPrenom;
+
+        mongoClient.connect(mongoUrl, { useNewUrlParser: true }, function(err, client) {
+
+                if (err) {
+                    console.log(chalk.magenta(`Pas de connexion à MongoDB`));
+                } else {
+
+                   let db = client.db(dbName);
+                    db.collection(Userscoll, {strict: true}, function(err, collection) {
+            if (err) {
+                console.log(chalk.magenta(`Pas de connexion pour la collection ` + Userscoll));
+              
+            }else{  
+                    let cursor = collection.find();
+                    cursor.toArray(function(err, documents) {
+
+                            for (let i = 0; i < documents.length; i++) {
+                                // if(documents[i]=! socket)
+                                // usersRenvoi.push(documents[i]);
+                                console.log("Le document de i est :"+documents[i].firstname );
+                                if(documents[i].firstname === monPrenom){
+
+                              socket.emit('MonEvtUsersDejaLa', monevtQuiGereTheinscPrenom);
+                              break;
+                            }else{
+
+
+                            let db = client.db(dbName);
+                                                    
+                            db.collection('Userscoll').insertOne({
+                                firstname: monevtQuiGereTheinscPrenom
+                            }, function(erreur, reponse) {
+                                if (erreur) {
+                                    console.log(chalk.magenta(`Score non enregistré dans la base de données`));
+                                }
+
+                                console.log("Hello Monsieur :" + monevtQuiGereTheinscPrenom);
+
+                            })
+
+
+                              
+                            }
+                            }
+
+                            })
+                          }; 
+                        });
+                    }
+           
+             });
+
+            })
+       
+
+
+
+
+
+
+
+  socket.on('envoiInsc2', function(monevtQuiGereTheinscPassword){
+
+    mongoClient.connect(mongoUrl, {useNewUrlParser: true}, function(erreur, client) {
+    
+        if (erreur) {
+          console.log(chalk.magenta(`Pas de connexion à MongoDB`));
+        } else {
+          let db = client.db(dbName);
+          if( monevtQuiGereTheinscPassword.length > 8){
+          db.collection(Userscoll).insertOne({
+            password : monevtQuiGereTheinscPassword
+          }, function(erreur, reponse) {
+            if (erreur) {
+              console.log(chalk.magenta(`Impossible d'enregistrer le mot de passe dans la base de données`));
+            }
+          }); 
+        }else{
+
+          socket.emit('MonEvtPasswordCourt', monevtQuiGereTheinscPassword);
+
+
+        }
+      }
     });
 
+  });
 
 
-/**
- * Gestion de l'évènement 'connection' : correspond à la gestion
- * d'une requête WebSocket provenant d'un client WebSocket.
- */
+
+  socket.on('envoiTonPasswordConexionLa', function(monevtQuiGereTheConnexionPassword) {
+
+    mongoClient.connect(mongoUrl, {
+                useNewUrlParser: true
+            }, function(erreur, client) {
+
+                if (erreur) {
+                    console.log(chalk.magenta(`Pas de connexion à MongoDB`));
+                } else {
+                    let db = client.db(dbName);
+
+
+                    db.collection(Userscoll, {
+                            strict: true
+                        }, function(err, collection) {
+                            if (err) {
+                                console.log(chalk.magenta(`Pas de connexion pour la collection ` + Userscoll));
+
+                            } else {
+                                let cursor = collection.find();
+                                cursor.toArray(function(err, documents) {
+
+                                        for (let i = 0; i < documents.password; i++) {
+                                            if (monevtQuiGereTheConnexionPassword == documents[i].password) {
+
+                                              socket.emit('MonEvtPasswordBonConnexion', monevtQuiGereTheinscPassword);
+
+                                            }
+                                    }
+                                })
+                            };
+
+                    })
+
+                  }
+
+                })
+
+
+              });
+
 
 var objetVide = {};
 
@@ -223,7 +347,7 @@ var objetVide = {};
 
 
 
-        socketIOWebSocketServer.emit('envoiId', objetBis.id);
+        socket.emit('envoiId', objetBis.id);
 
 
     })
@@ -247,7 +371,6 @@ var objetVide = {};
     socket.on('unEvenement', function(message) {
 
         // Affichage du message reçu dans la console.
-        console.log(message);
 
         // Envoi d'un message au client WebSocket.
         socket.emit('unAutreEvenement', {
@@ -269,20 +392,11 @@ var objetVide = {};
     });
 
 
-    socket.on('envoiInsc', function(evenementReceive){
-
-        console.log(evenementReceive);  
-    });
-
-    socket.on('envoiInsc2', function(evenementReceive2){
-
-        console.log(evenementReceive2);  
-    });
 
 
-    socket.on('envoiBack', function(evt) {
+        socket.on('envoiBack', function(evt) { 
 
-        console.log(evt);
+       
 
         valeurId = objetBis.id;
 
@@ -299,7 +413,7 @@ var objetVide = {};
             console.log("Yo ta valeur c'est " + valeurId);
 
             score++;
-            socket.emit('resultat', {
+            socket.emit('theIndice', {
                 clement: "egal",
                 score
             });
@@ -310,7 +424,7 @@ var objetVide = {};
             console.log("Yo ta valeur c'est " + valeurId);
 
 
-            socket.emit('resultat', {
+            socket.emit('theIndice', {
                 clement: "moin",
                 score
             });
@@ -320,7 +434,7 @@ var objetVide = {};
             console.log("Yo ta valeur c'est " + valeurId);
 
 
-            socket.emit('resultat', {
+            socket.emit('theIndice', {
                 clement: "sup",
                 score
             });
@@ -332,28 +446,11 @@ var objetVide = {};
     });
 
 
+  });
+ 
 
 
-    socket.on('event', function(movecarre) {
-        objetBis.topHaut = movecarre.yHaut;
-        objetBis.topBas = movecarre.yBas;
-        // console.log("Haut NEW", movecarre.yHaut);
-        // console.log("Bas NEW", movecarre.yBas);
 
-        socketIOWebSocketServer.emit('creationCarre', objetBis)
-    });
-
-    socket.on('disconnect', function() {
-
-        delete objetVide[objetBis.id];
-        socketIOWebSocketServer.emit('deleteDiv', objetBis);
-    })
-
-
-});
-
--
-httpServer.listen(port, function() {
-    console.log();
-});
-
+httpServer.listen(8888, function() {
+    console.log("8888!");
+})

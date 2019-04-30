@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Atelier Back-End</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/flatly/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/flatly/bootstrap.min.css"/>
   </head>
   <h1>Trouve ton ID en suivant la consigne ! Bonne chance !</h1>
   <body>
@@ -31,20 +31,20 @@
       <form>
 
         <div class="form-group">
-          <label for="prenomInsc">First name</label>
-          <input type="text" class="form-control" id="prenomInsc" aria-describedby="prenomInsc " placeholder="Entre ton prenom">
+          <label for="email">First Name</label>
+          <input type="text" class="form-control" id="prenomInsc" aria-describedby="Prenom" placeholder="Entre ton prénom">
         </div>
 
         <div class="form-group">
-          <label for="password" type="password">Password</label>
-          <input type="password" class="form-control" id="password" placeholder="Mot de Passe" name="password">
+          <label for="password">Password</label>
+          <input type="password" class="form-control" id="passwordInsc" placeholder="Mot de Passe" name="password">
         </div>
 
         <button type="submit" class="btn btn-primary" id="validationInsc">Envoyer</button>
       </form>
 
 
-
+      <h2>Connexion</h2>
 
     <form id="form">
       First name: <input type="text" id="firstname" name="fname"><br>
@@ -52,36 +52,50 @@
       Trouve ton id: <input type="text" id="myid" name="myidentifiant" ><br>
       <button id="validation">Valider</button>
     </form>
+    <div>Score</div>
+    <div id=score></div>
   </body>
   <script href="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
   <!-- Chargement du "framework" client socket.io -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+  <script type="text/javascript" src="/socket.io/socket.io.js"></script>
   
   <script type="text/javascript">
   (function(window, io) {
-    var socket = io('https://abs-backend.herokuapp.com/');
+    var socket = io();
 //Au chargement du document
 window.addEventListener('DOMContentLoaded', function() {
 
-      var emailInscription = document.getElementById(prenomInsc);
-      var passwordInscription = document.getElementById(password);
+      var prenomInscription = document.getElementById(prenomInsc);
+      var passwordInscription = document.getElementById(passwordInsc);
 
       document.getElementById('validationInsc').addEventListener('click', function(evtInscription){
         evtInscription.preventDefault();
         console.log("jai clické !!"); 
        
-        socket.emit('envoiInsc', prenomInsc.value);
-        socket.emit('envoiInsc2', password.value);
-
+        socket.emit('envoiInsc',  prenomInsc.value );
+        socket.emit('envoiInsc2',  passwordInsc.value );
       });
 
       socket.on('envoiFront', function(monevtInsc){
 
-        console.log(monevtInsc);
+        // console.log(monevtInsc);
 
       });
 
+      var passwordConnexion = document.getElementById(motdepasse);
 
+      document.getElementById('validation').addEventListener('click', function(evtConnexion){
+        evtConnexion.preventDefault();
+        socket.emit('envoiTonPasswordConexionLa',  motdepasse.value );
+        console.log(motdepasse.value);
+
+      })
+
+
+      socket.on('MonEvtPasswordBonConnexion', function(){
+
+          alert('Ton mot de passe est correct !')
+      })
     // socket : Est un objet qui représente la connexion WebSocket établie entre le client WebSocket et le serveur WebSocket.
 
     var firstName = window.document.getElementById("firstname")  ;
@@ -90,15 +104,17 @@ window.addEventListener('DOMContentLoaded', function() {
   
     document.getElementById('validation').addEventListener('click', function(evt) {
       evt.preventDefault();
-        console.log('Identifiant div: ' + myid.value);
+        // console.log('Identifiant div: ' + myid.value);
         console.log('Prénom: '+firstName.value);
         var maVariableStocke = myid.value;
         socket.emit('envoiBack', maVariableStocke);
         socket.emit('envoiBack2', firstName.value);
       
 
-socket.on('resultat', function(evt) {
+socket.on('theIndice', function(evt) {
       evt.name = firstName.value;
+
+      document.getElementById("score").innerHTML = evt.score;
 
 if (evt.clement == "sup") {
      alert("C'est plus ! Ton score est de : " + evt.score)
@@ -108,20 +124,39 @@ if (evt.clement == "moin") {
 }
 
 if (evt.clement == "egal") {
-
-     alert("C'est egal bien joué ! Tu peux le crier à ton partenaire :p ! Ton score est de : " + evt.score)
-
-     alert("C'est egal bien joué ! Tu peux le crier à ton partenaire :p Ton score est de : " + evt.score)
-
+     alert("C'est egal bien joué ! Ton score est de : " + evt.score)
 }
 socket.emit('choucroute', evt);
 console.log("Le score est de " +evt.score);
 
 });
+   
     });
 
 
 });
+
+
+socket.on('MonEvtPasswordCourt', function(motDePasseVide){
+
+        alert("Veuillez renseigner un mot de passe avec 8 charactères !! ");
+
+});
+
+
+
+socket.on('MonEvtUsersDejaLa', function(evtUsersDejala){
+
+  alert('Ce users est déjà existant !');
+
+})
+socket.on('resultat2', function(evt2){
+    if(evt2.length != 0)
+    alert("Vous êtes bien connecté : "+evt2);
+    console.log(evt2);
+
+});
+
 
 
 
