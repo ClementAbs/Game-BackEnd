@@ -2,7 +2,7 @@
 // Chargement du module HTTP.
 const http = require('http');
 
-const port = process.env.port;
+const port = process.env.PORT;
 
 // Création du serveur HTTP.
 var httpServer = http.createServer();
